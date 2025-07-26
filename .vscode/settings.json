@@ -1,0 +1,32 @@
+{
+    "Lua.workspace.library": [
+        "C:/Program Files (x86)/Steam/steamapps/common/GarrysMod/garrysmod/addons/epp/lua/modules/sh_cppi.lua",
+        "C:/Program Files (x86)/Steam/steamapps/common/GarrysMod/garrysmod/addons/epp/lua/autorun/sh_globals.lua",
+        "C:\\Users\\Emek\\AppData\\Roaming\\Code\\User\\globalStorage\\sumneko.lua\\addonManager\\addons\\darkrp",
+        "C:\\language_servers\\lua_ls\\localaddon",
+        "${addons}/garrysmod/module/library",
+        "${addons}/darkrp/module/library"
+    ],
+    "Lua.runtime.version": "LuaJIT",
+    "Lua.runtime.special": {
+        "include": "dofile",
+        "IncludeCS": "dofile"
+    },
+    "Lua.runtime.nonstandardSymbol": [
+        "continue",
+        "&&",
+        "||",
+        "!=",
+        "!",
+        "//",
+        "/**/"
+    ],
+    "Lua.diagnostics.disable": [
+        "undefined-global",
+        "duplicate-set-field"
+    ],
+    "Lua.workspace.checkThirdParty": false,
+    "Lua.diagnostics.globals": [
+        "DarkRP"
+    ]
+}
