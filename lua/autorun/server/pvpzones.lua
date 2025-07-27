@@ -8,6 +8,10 @@ end)
 local penalty = 2500
 local reward  = 2500
 
+hook.Add("Emek_ShouldNLR", "disablenlrpvpzone", function(ply)
+    if ply.IsPVP then return true end
+end)
+
 ---Take money from player on ddeath
 ---@param victim Player
 ---@param inflictor Entity
@@ -30,6 +34,7 @@ hook.Add("PlayerDeath", 'pvpzonedeath', function (victim, inflictor, attacker)
 
     inflictor:addMoney(reward)
     inflictor:ChatPrint("You got 2500 for killing player")
+    
 end)
 
 ---@param player Player
