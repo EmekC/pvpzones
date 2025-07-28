@@ -1,5 +1,7 @@
 print("Initializing pvpzones")
 
+util.AddNetworkString('pvpzone_notifyclient')
+
 -- prevent player from spawning props in pvpzone
 hook.Add("PlayerSpawnProp", 'pvpzonespawnprop', function (ply, model)
     if ply.IsPVP then return false end
@@ -26,14 +28,15 @@ hook.Add("PlayerDeath", 'pvpzonedeath', function (victim, inflictor, attacker)
 
     -- penaltize on death
     victim:addMoney(-plyPenalty)
-    victim:ChatPrint("You lost 2500 dollars")
+    victim:ChatPrint("-" .. DarkRP.formatMoney(plyPenalty))
 
     -- reward killer
-    if inflictor == victim then return end -- suicide
-    if not inflictor:IsPlayer() then return end ---@cast inflictor Player
+    print(attacker, attacker:IsPlayer(), attacker == victim)
+    if attacker == victim then return end -- suicide
+    if not attacker:IsPlayer() then return end ---@cast attacker Player
 
-    inflictor:addMoney(reward)
-    inflictor:ChatPrint("You got 2500 for killing player")
+    attacker:addMoney(reward)
+    attacker:ChatPrint("+" .. DarkRP.formatMoney(reward))
     
 end)
 
@@ -63,10 +66,15 @@ local function onPlayerEnter(player)
         maxarmor = player:GetMaxArmor(),
         armor  = player:Armor()
     }
-    player:SetHealth(100)
-    player:SetMaxArmor(25)
-    player:SetArmor(25)
+    -- player:SetHealth(100)
+    -- player:SetMaxArmor(25)
+    -- player:SetArmor(25)
     
+    -- send update to client
+    net.Start("pvpzone_notifyclient")
+    net.WriteBool(true)
+    net.Send(player)
+
 end
 
 ---@param player Player
@@ -79,14 +87,18 @@ local function onPlayerExit(player)
         end
     end//
 
-    if player.BeforePVPStats and player:Alive() then
-        player:SetHealth(player.BeforePVPStats.health or 100)
-        player:SetMaxArmor(player.BeforePVPStats.maxarmor or 100) 
-        player:SetArmor(player.BeforePVPStats.armor or 0)
-    end
+    -- if player.BeforePVPStats and player:Alive() then
+    --     player:SetHealth(player.BeforePVPStats.health or 100)
+    --     player:SetMaxArmor(player.BeforePVPStats.maxarmor or 100) 
+    --     player:SetArmor(player.BeforePVPStats.armor or 0)
+    -- end
 
     player.BeforePVPStats = nil
     player.IsPVP = false
+
+    net.Start("pvpzone_notifyclient")
+    net.WriteBool(false)
+    net.Send(player)
 end
 
 local function createZones()

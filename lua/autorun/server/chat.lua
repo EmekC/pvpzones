@@ -68,4 +68,11 @@ hook.Add("PlayerSay", 'pvpzoneschat', function (ply, text, teamChat)
 
         return ''
     end
+
+    if msgarray[1] == '!resetzones' then
+        
+        hook.Run('pvpzone_update')
+
+        return ''
+    end
 end)
