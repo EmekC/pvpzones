@@ -8,11 +8,20 @@ hook.Add("PlayerSpawnProp", 'pvpzonespawnprop', function (ply, model)
 end)
 
 local penalty = 2500
-local reward  = 2500
+local reward  = 5000
 
 hook.Add("Emek_ShouldNLR", "disablenlrpvpzone", function(ply)
     if ply.IsPVP then return true end
 end)
+
+function table.map(tb, func)
+    local t = {}
+    for k,v in pairs(tb) do
+        t[k] = func(v)
+    end
+
+    return t
+end
 
 ---Take money from player on ddeath
 ---@param victim Player
@@ -26,18 +35,36 @@ hook.Add("PlayerDeath", 'pvpzonedeath', function (victim, inflictor, attacker)
     local plyPenalty = penalty
     if money < penalty then plyPenalty = money end
 
+    --- track weapons to keep if dying in pvp zone
+    victim.PVPWeapons = table.map(victim:GetWeapons(),function(item) return item:GetClass() end)
+
     -- penaltize on death
     victim:addMoney(-plyPenalty)
     victim:ChatPrint("-" .. DarkRP.formatMoney(plyPenalty))
 
     -- reward killer
-    print(attacker, attacker:IsPlayer(), attacker == victim)
     if attacker == victim then return end -- suicide
     if not attacker:IsPlayer() then return end ---@cast attacker Player
 
     attacker:addMoney(reward)
     attacker:ChatPrint("+" .. DarkRP.formatMoney(reward))
     
+end)
+
+--- when dying in pvp zone keep weapons
+hook.Add("PlayerSpawn", 'pvpzonerespawnkeepwep', function (player, transition)
+    if player.PVPWeapons then
+        for k,v in pairs(player.PVPWeapons) do
+            player:Give(v)
+        end
+
+        -- give one ammo 
+        if isfunction(GiveAllAmmo) then
+            GiveAllAmmo(player)
+        end
+        player.PVPWeapons = nil
+    end
+
 end)
 
 ---@param player Player
@@ -55,20 +82,19 @@ local function onPlayerEnter(player)
 
     if player:isCP() then
         local jobtable = player:getJobTable()
+        player.BeforePVPStats = {
+            health = player:Health(),
+            maxarmor = player:GetMaxArmor(),
+            armor  = player:Armor()
+        }
+        player:SetArmor(0)
+
         for k, wpn in ipairs(jobtable.weapons) do
             player:StripWeapon(wpn)
         end
     end
     -- update player variables
     player.IsPVP = true
-    player.BeforePVPStats = {
-        health = player:Health(),
-        maxarmor = player:GetMaxArmor(),
-        armor  = player:Armor()
-    }
-    -- player:SetHealth(100)
-    -- player:SetMaxArmor(25)
-    -- player:SetArmor(25)
     
     -- send update to client
     net.Start("pvpzone_notifyclient")
@@ -79,6 +105,9 @@ end
 
 ---@param player Player
 local function onPlayerExit(player)
+    -- give back armor
+    if player.BeforePVPStats then player:SetArmor(player.BeforePVPStats.armor or 0) end
+
     -- give back stripped weapons
     if player:Alive() and player:isCP() then
         local jobtable = player:getJobTable()
